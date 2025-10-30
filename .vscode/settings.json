@@ -153,6 +153,7 @@
         "numbers": "cpp",
         "semaphore": "cpp",
         "cinttypes": "cpp",
-        "source_location": "cpp"
+        "source_location": "cpp",
+        "milnorprodexperiment": "cpp"
     }
 }
