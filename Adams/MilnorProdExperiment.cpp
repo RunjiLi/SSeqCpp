@@ -73,7 +73,7 @@ void print_matrix(const std::array<std::array<bool, MATRIX_SIZE>, MATRIX_SIZE>& 
  * Column0[7] x_{71}
  * Column0[8]
  */
-void MulMilnorV4(const std::array<uint32_t, 8>& R, const std::array<uint32_t, 8>& S, MMilnor1d& result_app)
+void MulMilnorV4(const std::array<uint32_t, 8>& R, const std::array<uint32_t, 8>& S, std::vector<const std::array<uint32_t, 8>>& result_app)
 {
     std::array<std::array<uint32_t, 9>, 9> jDiag; /* Each X represents the bits of a row in columns 1-7 */
     std::array<std::array<uint8_t, 9>, 9> Column0;
