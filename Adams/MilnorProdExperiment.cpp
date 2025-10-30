@@ -62,6 +62,41 @@ void print_matrix(const std::array<std::array<bool, MATRIX_SIZE>, MATRIX_SIZE>& 
 	}
 }
 
+
+/**
+ * Column0[1] x_{11} x_{12} x_{13} x_{14} x_{15} x_{16} x_{17}
+ * Column0[2] x_{21} x_{22} x_{23} x_{24} x_{25} x_{26}
+ * Column0[3] x_{31} x_{32} x_{33} x_{34} x_{35}
+ * Column0[4] x_{41} x_{42} x_{43} x_{44}
+ * Column0[5] x_{51} x_{52} x_{53}
+ * Column0[6] x_{61} x_{62}
+ * Column0[7] x_{71}
+ * Column0[8]
+ */
+void MulMilnorV4(const std::array<uint32_t, 8>& R, const std::array<uint32_t, 8>& S, MMilnor1d& result_app)
+{
+    std::array<std::array<uint32_t, 9>, 9> jDiag; /* Each X represents the bits of a row in columns 1-7 */
+    std::array<std::array<uint8_t, 9>, 9> Column0;
+    const auto deg_max = 276;
+    for (uint8_t iBit = 0; iBit <= 8; ++iBit) { /* We consider the iBit-th bit of Milnor's matrix X */
+        for (size_t i = 1; i <= 8; ++i)
+            Column0[iBit][i] = R[i - 1] % 2;
+        for (jDiag[iBit][3] = 0; jDiag[iBit][3] <= 2; ++jDiag[iBit][3]) {
+            for (jDiag[iBit][4] = 0; jDiag[iBit][4] <= 3; ++jDiag[iBit][4]) {
+                for (jDiag[iBit][5] = 0; jDiag[iBit][5] <= 4; ++jDiag[iBit][5]) {
+                    for (jDiag[iBit][6] = 0; jDiag[iBit][6] <= 5; ++jDiag[iBit][6]) {
+                        for (jDiag[iBit][7] = 0; jDiag[iBit][7] <= 6; ++jDiag[iBit][7]) {
+                            for (jDiag[iBit][8] = 0; jDiag[iBit][8] <= 7; ++jDiag[iBit][8]) {
+
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
 int main()
 {
 
