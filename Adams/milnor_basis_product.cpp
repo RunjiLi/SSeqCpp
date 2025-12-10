@@ -27,7 +27,8 @@ void prod_calculator::generate_cache(std::array<std::vector<std::array<std::arra
 				degree += pow(2, i + 1)-1;
 			}
 		}
-		if(degree<=MAX_DEGREE)
+		if (degree <= MAX_DEGREE)
+			assert(index < CACHE_SIZE);
 			cache[index].push_back(generate_matrix(seq));
 		return;
 	}
@@ -63,7 +64,7 @@ std::array<std::vector<std::array<uint8_t, MATRIX_SIZE - 1>>,CACHE_SIZE> prod_ca
 	return result;
 }
 
-void prod_calculator::calculate_product(std::array<int, MATRIX_SIZE>& R, std::array<int, MATRIX_SIZE>& S, std::array<int, MATRIX_SIZE>& TX, int depth = 0)
+void prod_calculator::search_product(std::array<int, MATRIX_SIZE>& R, std::array<int, MATRIX_SIZE>& S, std::array<unsigned int, MATRIX_SIZE>& TX, int depth = 0)
 {
 	int r_sum = 0, s_sum = 0;
 	for (int i : R)
@@ -79,30 +80,25 @@ void prod_calculator::calculate_product(std::array<int, MATRIX_SIZE>& R, std::ar
 		return;
 	}
 
-	int r_index = 0; //r_index is colunm 0
+	unsigned int r_index = 0; //r_index is colunm 0
 	for (int i = 0; i < MATRIX_SIZE; ++i)
 		r_index += (R[i] % 2) << i;
 	
-	/*
-	int s_index = 0;
-	for (int i = 1; i < MATRIX_SIZE; ++i)
-		s_index += pow(2, i - 1) * (S[i] % 2);
-	*/
-
 	std::array<int, MATRIX_SIZE> R_copy = R;
 	std::array<int, MATRIX_SIZE> S_copy = S;
-	std::array<int, MATRIX_SIZE> TX_copy = TX;
+	std::array<unsigned int, MATRIX_SIZE> TX_copy = TX;
 
 	for (size_t i = 0; i < CACHE_SIZE; ++i)
 		if ((i | (r_index >> 1)) == (i + (r_index >> 1))) //the last 7 bits of the index of r and index of matrix has no repeated bits
 			for (auto matrix : cache[i])
 			{				
 				uint8_t row_0 = 0;
+				int degree_count = 0;
 
 				for (int j = 0; j < MATRIX_SIZE - 1; ++j)
 				{
 					R[j] -= (matrix[j] << 1);
-					if (R[j] < 0)
+					if (R[j] < 0) //maybe use try assert here, but it is not more efficeint, and we may need to turn off assertions
 						goto next_matrix; //if we sort the matrices within an index in some way (increasningly by row), we may skip the whole index 
 					R[j] /= 2; //the least significant bit of R is recored in r_index and discarded here
 				}
@@ -113,7 +109,7 @@ void prod_calculator::calculate_product(std::array<int, MATRIX_SIZE>& R, std::ar
 					{
 						S[k] -= (matrix[j] >> k) % 2;
 					}
-					if (S[k] < 0)
+					if (S[k] < 0) 
 						goto next_matrix;
 					else if (S[k] % 2 != 0)
 					{
@@ -125,14 +121,22 @@ void prod_calculator::calculate_product(std::array<int, MATRIX_SIZE>& R, std::ar
 					S[k] /= 2;
 				}
 
-				for (int j = 0; j < MATRIX_SIZE; ++j)
+				TX[0] += (r_index % 2 + row_0 % 2) << depth;
+				for (int j = 1; j < MATRIX_SIZE; ++j)
 				{
-					TX[j] += ((r_index >> j) % 2 + (row_0 >> j) % 2)*pow(2, depth);
-					if (j > 0)
-						TX[j] += ((i >> (j - 1)) % 2)*pow(2, depth);
+					TX[j] += ((i >> (j - 1)) % 2 + (r_index >> j)% 2 + (row_0 >> j) % 2) << depth; //i is the matrix contribution
+				}
+				
+				for (int j = 0; j < MATRIX_SIZE; ++j)
+					degree_count += TX[j] << j;
+				
+				if (degree_count > MAX_DEGREE)
+				{
+					no_summand_exceeding_degree = false;
+					goto next_matrix;
 				}
 
-				calculate_product(R, S, TX, depth + 1);
+				search_product(R, S, TX, depth + 1);
 
 				next_matrix:;
 				R = R_copy;
@@ -142,12 +146,16 @@ void prod_calculator::calculate_product(std::array<int, MATRIX_SIZE>& R, std::ar
 
 }
 
-std::set<std::array<int, MATRIX_SIZE>> prod_calculator::get_prod(const std::array<int, MATRIX_SIZE>& R, const std::array<int, MATRIX_SIZE>& S)
+std::unordered_set<std::array<unsigned int, MATRIX_SIZE>> prod_calculator::get_prod(const std::array<int, MATRIX_SIZE>& R, const std::array<int, MATRIX_SIZE>& S)
 {
 	prod = {};
-	std::array<int, MATRIX_SIZE> TX = { 0 };
+	no_summand_exceeding_degree = true;
+	std::array<unsigned int, MATRIX_SIZE> TX = { 0 };
 	std::array<int, MATRIX_SIZE> R_copy = R;
 	std::array<int, MATRIX_SIZE> S_copy = S;
-	calculate_product(R_copy, S_copy, TX, 0);
+	search_product(R_copy, S_copy, TX, 0);
+	
+	//assert(no_summand_exceeding_degree); //The assertion fails if there is a possible summand whose dgree is too high.
+
 	return prod;
 }
