@@ -113,7 +113,7 @@ void prod_calculator::search_product(std::array<int, MATRIX_SIZE>& R, std::array
 						goto next_matrix;
 					else if (S[k] % 2 != 0)
 					{
-						if ((r_index >> k) % 2)
+						if (((r_index | (i << 1)) >> k) % 2 )
 							goto next_matrix;
 						row_0 += (1 << k);
 						S[k] -= 1;
@@ -155,7 +155,7 @@ std::unordered_set<std::array<unsigned int, MATRIX_SIZE>> prod_calculator::get_p
 	std::array<int, MATRIX_SIZE> S_copy = S;
 	search_product(R_copy, S_copy, TX, 0);
 	
-	//assert(no_summand_exceeding_degree); //The assertion fails if there is a possible summand whose dgree is too high.
+	assert(no_summand_exceeding_degree); //The assertion fails if there is a possible summand whose dgree is too high.
 
 	return prod;
 }
